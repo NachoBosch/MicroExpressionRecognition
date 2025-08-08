@@ -10,7 +10,7 @@ from tqdm import tqdm
 # Cargar cada split desde sus carpetas
 dataset = load_dataset(
     "imagefolder",
-    data_dir="../../CASME/CASME-II-Binary-splitted",
+    data_dir="../CASMEII/CASME-II-Binary-splitted",
     split=None
 )
 

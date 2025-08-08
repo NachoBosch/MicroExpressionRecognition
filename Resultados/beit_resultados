@@ -1,0 +1,13 @@
+**Prueba 1**
+Clasificación Binaria
+ME vs NE
+Epochs = 5
+Archivo beit.py
+Epoch 5, Train Loss: 0.1400
+Val Loss: 0.1586, Accuracy: 0.9344
+Test Accuracy: 0.9385
+
+**Prueba 2**
+Clasificación Binaria
+ME vs NE
+Epochs = 50
