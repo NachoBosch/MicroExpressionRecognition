@@ -10,13 +10,13 @@ from tqdm import tqdm
 # Cargar cada split desde sus carpetas
 dataset = load_dataset(
     "imagefolder",
-    data_dir="CASMEII",
-    split=None  # Carga todos los splits definidos en carpetas
+    data_dir="../../CASME/CASME-II-Binary-splitted",
+    split=None
 )
 
 # Accedemos a cada uno
 train_ds = dataset["train"]
-val_ds = dataset["val"]
+val_ds = dataset["validation"]
 test_ds = dataset["test"]
 
 model_name = "microsoft/beit-base-patch16-224"
@@ -35,26 +35,27 @@ val_ds.set_transform(transform)
 test_ds.set_transform(transform)
 
 def collate_fn(batch):
-    pixel_values = torch.cat([item['pixel_values'] for item in batch])
+    pixel_values = torch.stack([item['pixel_values'] for item in batch])
     labels = torch.tensor([item['labels'] for item in batch])
     return {'pixel_values': pixel_values, 'labels': labels}
 
-train_loader = DataLoader(train_ds, batch_size=16, shuffle=True, collate_fn=collate_fn)
-val_loader   = DataLoader(val_ds,   batch_size=16, shuffle=False, collate_fn=collate_fn)
-test_loader  = DataLoader(test_ds,  batch_size=16, shuffle=False, collate_fn=collate_fn)
+train_loader = DataLoader(train_ds, batch_size=4, shuffle=True, collate_fn=collate_fn)
+val_loader   = DataLoader(val_ds,   batch_size=4, shuffle=False, collate_fn=collate_fn)
+test_loader  = DataLoader(test_ds,  batch_size=4, shuffle=False, collate_fn=collate_fn)
 
 
 model = BeitForImageClassification.from_pretrained(
     model_name,
     num_labels=2,
-    id2label={0: "NE", 1: "ME"},
-    label2id={"NE": 0, "ME": 1}
+    id2label={0: "ME", 1: "NE"},
+    label2id={"ME": 0, "NE": 1},
+    ignore_mismatched_sizes=True
 )
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
-optimizer = AdamW(model.parameters(), lr=2e-5)
+optimizer = AdamW(model.parameters(), lr=1e-5)
 
 # Entrenamiento
 model.train()
