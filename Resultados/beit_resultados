@@ -11,3 +11,7 @@ Test Accuracy: 0.9385
 Clasificación Binaria
 ME vs NE
 Epochs = 50
+Epoch 50, Train Loss: 0.0238, Train Acc: 0.9920
+Epoch 50, Val Loss: 0.1267, Val Acc: 0.9604
+Test Accuracy: 0.9651
+
