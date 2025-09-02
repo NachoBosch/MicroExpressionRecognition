@@ -15,3 +15,19 @@ Epoch 50, Train Loss: 0.0238, Train Acc: 0.9920
 Epoch 50, Val Loss: 0.1267, Val Acc: 0.9604
 Test Accuracy: 0.9651
 
+**Prueba 3**
+Clasificación Binaria
+ME vs NE
+Micron-BERT: Sin pares, sin checkpoints para fine tuning.
+Epochs = 10
+Epoch 010 | train loss 0.6984 acc 0.5262 | val loss 0.6920 acc 0.5344 | 5229.8s
+TEST | loss 0.6834 acc 0.5665
+
+**Prueba 4**
+Clasificación Binaria
+ME vs NE
+Micron-BERT: Sin pares, sin checkpoints para fine tuning.
+Epochs = 50
+Epoch 050 | train loss 0.6895 acc 0.5441 | val loss 0.6870 acc 0.5505 | 5225.2s
+TEST | loss 0.6872 acc 0.5770
+

@@ -251,14 +251,14 @@ def main():
     # print(os.getcwd())
     # Usar un diccionario de configuración en vez de argparse
     config = {
-        "train_dir": "../../CASME/CASME-II-Binary-splitted/train",
-        "val_dir": "../../CASME/CASME-II-Binary-splitted/validation",
-        "test_dir": "../../CASME/CASME-II-Binary-splitted/test",  # o "data/test" si se desea usar test
+        "train_dir": "../CASMEII/CASME-II-Binary-splitted/train",
+        "val_dir": "../CASMEII/CASME-II-Binary-splitted/val",
+        "test_dir": "../CASMEII/CASME-II-Binary-splitted/test",  # o "data/test" si se desea usar test
 
         "checkpoint": "checkpoints/CASME2-is224-p8-b16-ep200.pth",
         "img_size": 224,
 
-        "epochs": 10,
+        "epochs": 50,
         "batch_size": 16,
         "lr": 1e-4,
         "weight_decay": 1e-4,
