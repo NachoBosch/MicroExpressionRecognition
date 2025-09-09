@@ -18,12 +18,30 @@ for dir, dirname, files in os.walk(data_dir):
     print(f"Dir: {dir} | subdir: {dirname} | cant de imagenes: {len(files)} ")
 
 
-def add_noise(image):
-    noise = np.random.normal(loc=0, scale=0.05, size=img.shape)
-    noisy_img = np.clip(img + noise, 0., 1.)
-    return noisy_img
+# def add_noise(image):
+#     if np.random.rand() < 0.5:
+#         noise = np.random.normal(0, 0.002, image.shape) #ruido gaussiano con media 0 y std 0.02
+#         noisy_image = image + noise
+#     else:
+#         noisy_image = image
+#     return np.clip(noisy_image, 0., 1.)
 
-train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,preprocessing_function=add_noise)
+def add_salt_pepper_noise(image, salt_prob=0.01, pepper_prob=0.01):
+    """
+    Agrega ruido Salt & Pepper a una imagen.
+    - salt_prob: probabilidad de poner pixel blanco (255)
+    - pepper_prob: probabilidad de poner pixel negro (0)
+    """
+    image = tf.cast(image, tf.float32)
+    random_noise = tf.random.uniform(tf.shape(image), minval=0, maxval=1.0)
+    salt_mask = random_noise <= salt_prob
+    pepper_mask = (random_noise > salt_prob) & (random_noise <= salt_prob + pepper_prob)
+    image = tf.where(salt_mask, 255.0, image)
+    image = tf.where(pepper_mask, 0.0, image)
+    return image
+
+train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(preprocessing_function=lambda x: add_salt_pepper_noise(x, salt_prob=0.02, pepper_prob=0.02),
+                rescale=1./255)#pimienta y sal con prob 0.02
 
 val_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
 
@@ -41,6 +59,13 @@ val_generator = val_datagen.flow_from_directory(f"{data_dir}/val",
 
 class_names = list(train_generator.class_indices.keys())
 print(class_names)
+
+# imgs, labels = next(train_generator)
+# print(imgs[0].shape,imgs[0].max(),imgs[0].min())
+# labels = labels[0]
+# plt.imshow(imgs[0])
+# plt.show()
+# print(labels)
 
 
 base_model = tf.keras.applications.ResNet50V2(
