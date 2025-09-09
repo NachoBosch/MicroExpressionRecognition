@@ -18,8 +18,12 @@ for dir, dirname, files in os.walk(data_dir):
     print(f"Dir: {dir} | subdir: {dirname} | cant de imagenes: {len(files)} ")
 
 
+def add_noise(image):
+    noise = np.random.normal(loc=0, scale=0.05, size=img.shape)
+    noisy_img = np.clip(img + noise, 0., 1.)
+    return noisy_img
 
-train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,horizontal_flip=False)
+train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,preprocessing_function=add_noise)
 
 val_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
 
