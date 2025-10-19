@@ -8,29 +8,34 @@ from matplotlib import cm
 def grad_cam(model, img_array, layer_name, class_idx):
     """
     Genera el heatmap de Grad-CAM para una imagen y clase específica.
-    
-    Args:
-        model: Modelo de Keras
-        img_array: Imagen preprocesada (batch_size, height, width, channels)
-        layer_name: Nombre de la última capa convolucional
-        class_idx: Índice de la clase a explicar
-    
-    Returns:
-        heatmap: Mapa de calor normalizado (0-1)
     """
-    grad_model = Model(
-        inputs=[model.inputs],
-        outputs=[model.get_layer(layer_name).output, model.output]
+    # Acceder al modelo ResNet50V2 anidado
+    resnet_model = model.get_layer('resnet50v2')
+    conv_layer = resnet_model.get_layer(layer_name)
+    
+    # Crear un modelo que va desde input de ResNet hasta la capa conv
+    resnet_to_conv = Model(
+        inputs=resnet_model.input,
+        outputs=conv_layer.output
     )
     
     with tf.GradientTape() as tape:
-        conv_outputs, predictions = grad_model(img_array)
+        # Propagar hacia adelante manualmente
+        conv_outputs = resnet_to_conv(img_array)
+        tape.watch(conv_outputs)
+        
+        # Continuar con el resto del modelo
+        x = conv_outputs
+        for layer in model.layers[1:]:  # Saltar ResNet50V2 (ya lo usamos)
+            x = layer(x)
+        predictions = x
+        
         loss = predictions[:, class_idx]
     
-    # Calcular gradientes
+    # Calcular gradientes respecto a conv_outputs
     grads = tape.gradient(loss, conv_outputs)
     
-    # Ponderar cada feature map por su importancia (promedio global)
+    # Ponderar cada feature map
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
     
     # Combinación lineal ponderada
@@ -57,6 +62,12 @@ def superimpose_heatmap(img, heatmap, alpha=0.4, colormap=cv2.COLORMAP_JET):
     Returns:
         Imagen con heatmap superpuesto
     """
+    # Normalizar imagen original si está en [0, 1]
+    if img.max() <= 1.0:
+        img = np.uint8(255 * img)
+    else:
+        img = img.astype(np.uint8)  # Asegurar que sea uint8
+    
     # Redimensionar heatmap al tamaño de la imagen
     heatmap_resized = cv2.resize(heatmap, (img.shape[1], img.shape[0]))
     
@@ -67,9 +78,9 @@ def superimpose_heatmap(img, heatmap, alpha=0.4, colormap=cv2.COLORMAP_JET):
     # Convertir de BGR a RGB (OpenCV usa BGR)
     heatmap_colored = cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB)
     
-    # Normalizar imagen original si está en [0, 1]
-    if img.max() <= 1.0:
-        img = np.uint8(255 * img)
+    # IMPORTANTE: Asegurar que ambas imágenes sean uint8
+    img = img.astype(np.uint8)
+    heatmap_colored = heatmap_colored.astype(np.uint8)
     
     # Superponer
     superimposed = cv2.addWeighted(img, 1-alpha, heatmap_colored, alpha, 0)
@@ -90,6 +101,7 @@ def visualize_gradcam(model, img_path, class_names, layer_name='conv5_block3_out
         img_size: Tamaño de entrada del modelo
         preprocess_input: Función de preprocesamiento (opcional)
     """
+    print(model.summary())
     # Cargar y preprocesar imagen
     img = tf.keras.preprocessing.image.load_img(img_path, target_size=img_size)
     img_array = tf.keras.preprocessing.image.img_to_array(img)
@@ -146,7 +158,7 @@ def visualize_gradcam(model, img_path, class_names, layer_name='conv5_block3_out
 
 
 def batch_gradcam_visualization(model, val_generator, class_names, 
-                                 layer_name='conv5_block3_out', num_samples=9):
+                                 layer_name='conv5_block3_out', num_samples=3):
     """
     Visualiza Grad-CAM para múltiples imágenes del validation set.
     
@@ -168,7 +180,7 @@ def batch_gradcam_visualization(model, val_generator, class_names,
     cols = 3
     rows = (num_samples + cols - 1) // cols
     
-    fig, axes = plt.subplots(rows, cols, figsize=(15, 5*rows))
+    fig, axes = plt.subplots(rows, cols, figsize=(20, 8*rows))
     axes = axes.flatten() if num_samples > 1 else [axes]
     
     for i in range(num_samples):
@@ -192,7 +204,7 @@ def batch_gradcam_visualization(model, val_generator, class_names,
         
         color = 'green' if predicted_class == true_class else 'red'
         title = f'True: {class_names[true_class]}\nPred: {class_names[predicted_class]} ({confidence*100:.1f}%)'
-        axes[i].set_title(title, color=color, fontweight='bold')
+        axes[i].set_title(title, color=color, fontweight='bold', fontsize=8)
         axes[i].axis('off')
     
     # Ocultar ejes sobrantes
@@ -268,10 +280,12 @@ def compare_classes_gradcam(model, img_path, class_names, layer_name='conv5_bloc
 
 if __name__ == "__main__":
     # Cargar modelo entrenado
-    model = tf.keras.models.load_model('casme_multiclass_model.h5')
-    
+    model = tf.keras.models.load_model('casme_multiclass_model_fixed.h5',
+                                        compile=False,
+                                        custom_objects={'BatchNormalization': tf.keras.layers.BatchNormalization})
+    path = "C:/Doctorado/Neurociencia/CASME/CASME-II-splitted"
     # Nombres de clases (usa los de tu dataset)
-    class_names = ['anger', 'disgust', 'fear', 'happiness', 'sadness', 'surprise']  # AJUSTA ESTO
+    class_names = ['disgust', 'fear', 'happiness', 'others', 'repression', 'sadness', 'surprise']
     
     # Última capa convolucional de ResNet50V2
     # Opciones comunes: 'conv5_block3_out', 'conv5_block2_out', 'conv4_block6_out'
@@ -279,15 +293,15 @@ if __name__ == "__main__":
     
     # 1. Visualizar una imagen específica
     print("=== Visualización de imagen específica ===")
-    img_path = 'path/to/test/image.jpg'  # CAMBIA ESTO
-    visualize_gradcam(model, img_path, class_names, layer_name=layer_name)
+    img_path = f'{path}/test/Happiness/img9 (2).jpg'  # CAMBIA ESTO
+    # visualize_gradcam(model, img_path, class_names, layer_name=layer_name)
     
     # 2. Visualizar batch del validation set
     print("\n=== Visualización de batch ===")
     # Recrear val_generator (ajusta paths)
     val_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
     val_generator = val_datagen.flow_from_directory(
-        'data/val',  # AJUSTA PATH
+        f'{path}/train',  # AJUSTA PATH
         target_size=(224, 224),
         batch_size=32,
         class_mode='categorical',
@@ -295,8 +309,8 @@ if __name__ == "__main__":
     )
     
     batch_gradcam_visualization(model, val_generator, class_names, 
-                                layer_name=layer_name, num_samples=9)
+                                layer_name=layer_name, num_samples=3)
     
     # 3. Comparar todas las clases en una misma imagen
     print("\n=== Comparación de clases ===")
-    compare_classes_gradcam(model, img_path, class_names, layer_name=layer_name)
+    # compare_classes_gradcam(model, img_path, class_names, layer_name=layer_name)

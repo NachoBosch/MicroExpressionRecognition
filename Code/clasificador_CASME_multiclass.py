@@ -8,7 +8,8 @@ import os
 
 
 # data_dir = "C:/Doctorado/Neurociencia/CASME/CASME2_splitted"
-data_dir = "../CASMEII/CASME-II-splitted"
+# data_dir = "../CASMEII/CASME-II-splitted"
+data_dir = "../CASME3/dataset-splitted"
 img_size = (224, 224)
 batch_size = 32
 num_classes = 7
@@ -42,12 +43,14 @@ def add_salt_pepper_noise(image, salt_prob:float, pepper_prob:float):
 
     return image
 
-train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-    preprocessing_function=lambda x: add_salt_pepper_noise(x, salt_prob=0.005, pepper_prob=0.005),
-                rescale=1./255,
-                rotation_range=5,
-                width_shift_range=0.05,
-                height_shift_range=0.05)
+# train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+#     preprocessing_function=lambda x: add_salt_pepper_noise(x, salt_prob=0.005, pepper_prob=0.005),
+#                 rescale=1./255,
+#                 rotation_range=5,
+#                 width_shift_range=0.05,
+#                 height_shift_range=0.05)
+
+train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,horizontal_flip=True)
 
 val_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
 
@@ -106,7 +109,7 @@ early_stopping = tf.keras.callbacks.EarlyStopping(
     restore_best_weights=True)
 
 model_checkpoint = tf.keras.callbacks.ModelCheckpoint(
-    'casme_multiclass_model_noisy_dataaug_sinEStop_complex.h5',
+    'casme3_multiclass_no_noisy_dataaug_no_ES.h5',
     monitor='val_accuracy',
     save_best_only=True,
     verbose=1
@@ -144,7 +147,7 @@ axes[1].set_ylabel('Precisión')
 axes[1].legend()
 axes[1].grid(True)
 plt.tight_layout()
-plt.savefig('training_history_multiclass_noisy_dataaug_sinEStop_complex.png', dpi=300, bbox_inches='tight')
+plt.savefig('casme3_multiclass_no_noisy_dataaug_no_ES.png', dpi=300, bbox_inches='tight')
 
 
 cm = ms.confusion_matrix(y_true, y_pred)
@@ -158,7 +161,7 @@ plt.ylabel('Valor Real')
 plt.xticks(rotation=45)
 plt.yticks(rotation=0)
 plt.tight_layout()
-plt.savefig('confusion_matrix_multiclass_noisy_dataaug_sinEStop_complex.png', dpi=300, bbox_inches='tight')
+plt.savefig('confusion_matrix_casme3_multiclass_no_noisy_dataaug_no_ES.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 print('¡Entrenamiento completado!')
