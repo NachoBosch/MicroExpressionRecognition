@@ -31,3 +31,13 @@ Epochs = 50
 Epoch 050 | train loss 0.6895 acc 0.5441 | val loss 0.6870 acc 0.5505 | 5225.2s
 TEST | loss 0.6872 acc 0.5770
 
+**Prueba 5**
+Clasificación Multiclase
+BEiT (BERT for image)
+Epochs = 5
+Epoch 5/5 | Train Loss: 0.0214, Acc: 0.9936 | Val Loss: 0.0144, Acc: 0.9971
+Modelo guardado en runs/CASME3-beit-microexp-5/best_model.pt
+Evaluando en Test: 100%|█████████████████████████████████████████| 87/87 [00:24<00:00,  3.54it/s]
+Accuracy en Test: 0.9978
+Modelo y procesador guardados en: CASME3-beit-microexp-5-v2.h5
+

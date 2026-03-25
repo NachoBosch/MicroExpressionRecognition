@@ -1,5 +1,5 @@
 **Prueba 1**
-Clasificador multiclase
+Clasificador multiclase - CASME 2
 100 Epochs
 Early Stopping epoch 8
 106/106 [==============================] - 36s 343ms/step - loss: 0.2478 - accuracy: 0.9728 - precision: 0.9814 - recall: 0.9675
@@ -19,7 +19,7 @@ Early Stopping epoch 8
 weighted avg       0.97      0.97      0.97      1693
 
 **Prueba 2**
-Clasificador multiclase
+Clasificador multiclase - CASME 2
 200 epochs
 Pre-procesamiento : Noise Salt & Pepper
 Aplicado a todas las imágenes
@@ -79,7 +79,7 @@ Aplicado con un 50% de probabilidad
 weighted avg       0.77      0.75      0.72      1693
 
 **Prueba 5**
-Clasificador multiclase
+Clasificador multiclase - CASME 2
 200 epochs
 Pre-procesamiento : Noise Salt & Pepper
 Aplicado con un 50% de probabilidad
@@ -96,4 +96,27 @@ Se añade otra capa densa (256) para aumentar la complejidad de la arquitectura
     accuracy                           0.77      1693
    macro avg       0.56      0.52      0.54      1693
 weighted avg       0.76      0.77      0.76      1693
+
+**Prueba 6**
+Clasificador Multiclase - CASME3
+200 epochs
+Sin ES
+Sin Noise
+Agumentation: Horizontal-Flip
+Arquitectura prueba 5
+200/200 loss: 0.2472 - accuracy: 0.9630 - precision: 0.9692 - recall: 0.9594
+              precision    recall  f1-score   support
+
+       anger       0.96      0.99      0.97       155
+     disgust       0.99      0.96      0.97       364
+        fear       0.97      0.99      0.98       184
+       happy       0.97      0.97      0.97       108
+      others       0.99      0.93      0.95       217
+         sad       0.91      0.95      0.93       140
+    surprise       0.93      0.97      0.95       211
+
+    accuracy                           0.96      1379
+   macro avg       0.96      0.97      0.96      1379
+weighted avg       0.96      0.96      0.96      1379
+
 

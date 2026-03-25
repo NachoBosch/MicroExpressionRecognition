@@ -1,17 +1,19 @@
 import os
 import torch
 import torch.nn as nn
+from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from transformers import BeitForImageClassification, BeitImageProcessor, AdamW
+from transformers import BeitForImageClassification, BeitImageProcessor
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 # CONFIG
-MODEL_NAME = "microsoft/beit-base-patch16-224-pt22k-ft22k"
+MODEL_NAME = "microsoft/beit-base-patch16-224"
 BATCH_SIZE = 16
-EPOCHS = 5
+num_epochs = 5
 LEARNING_RATE = 2e-5
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 data_dir = "../CASME3/dataset-splitted"
 
@@ -27,22 +29,25 @@ transform = transforms.Compose([
 
 train_dataset = datasets.ImageFolder(os.path.join(data_dir, "train"), transform=transform)
 val_dataset = datasets.ImageFolder(os.path.join(data_dir, "val"), transform=transform)
+test_dataset  = datasets.ImageFolder(os.path.join(data_dir, "test"), transform=transform)
 
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE)
+val_loader, test_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE),DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
 num_classes = len(train_dataset.classes)
 print(num_classes)
 
 # MODEL
-model = BeitForImageClassification.from_pretrained(MODEL_NAME, num_labels=num_classes)
-model.to(DEVICE)
+model = BeitForImageClassification.from_pretrained(MODEL_NAME,
+    num_labels=num_classes,
+    ignore_mismatched_sizes=True)
+model.to(device)
 
 # OPTIMIZER
 optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
 criterion = nn.CrossEntropyLoss()
 
-save_dir = f"CASME3-beit-microexp-{num_epochs}"
+save_dir = f"CASME3-beit-microexp-{num_epochs}-v2"
 log_dir = f"runs/{save_dir}"
 os.makedirs(log_dir, exist_ok=True)
 writer = SummaryWriter(log_dir=log_dir)
